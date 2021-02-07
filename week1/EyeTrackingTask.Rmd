@@ -171,3 +171,23 @@ summary(velocity_log) # more cinemaxx for both mouse and eye velocity.
 ```
 
 conclusion: ??
+
+but! 
+#2d DENSITY PLOT!
+
+```{r}
+fix = ggplot(df %>% filter(event == "fixation"), aes(x, y, color = website)) +
+  geom_point(alpha = 0.01) +
+  geom_density2d() + 
+  labs(title = "Fixations")
+
+mouse = ggplot(df, aes(mouse_x, mouse_y, color = website)) +
+  geom_point(alpha = 0.01) +
+  geom_density2d() +
+  labs(title = "Mouse position")
+
+p_load(cowplot)
+
+plot_grid(fix, mouse, nrow = 2)
+```
+
