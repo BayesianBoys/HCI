@@ -186,7 +186,7 @@ mouse = ggplot(df, aes(mouse_x, mouse_y, color = website)) +
   geom_density2d() +
   labs(title = "Mouse position")
 
-p_load(cowplot)
+pacman::p_load(cowplot)
 
 plot_grid(fix, mouse, nrow = 2)
 ```
