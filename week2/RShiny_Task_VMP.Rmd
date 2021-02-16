@@ -10,7 +10,8 @@ If any of these are not installed, use install.packages(" package name ") to ins
 ```{r}
 
 library(pacman)
-p_load(shiny, shinydashboard, tidyverse)
+p_load(shiny, shinydashboard, tidyverse,
+       wesanderson, RColorBrewer, ggthemes)
 
 ```
 
@@ -21,6 +22,19 @@ A dashboard contains a header, a sidebar, and a body.
 
 You can paste code into this shell during the following tasks. 
 ```{r}
+
+
+## reactive stuff. 
+dataset <- read.csv("~/HCI/week1/clean_data.csv") %>%
+  as_tibble() %>%
+  mutate(website = as_factor(website),
+         event = as_factor(event),
+         name = as_factor(name),
+         order_tickets_online = as_factor(order_tickets_online),
+         session = as_factor(session),
+         cinemaxx_1st = as_factor(cinemaxx_1st)) 
+  
+numeric <- dataset %>% select(where(is.numeric)) 
 
 ui <- dashboardPage(
   
@@ -62,8 +76,13 @@ ui <- dashboardPage(
       # Second tab content
       tabItem(tabName = "two", 
       fluidRow( 
-                box(plotOutput("plot2", height = 250)) #Add plot,specify size.
-      )),
+                box(plotOutput("plot2", height = 250)), #Add plot,specify size.
+                box(selectInput(inputId = "select_x", 
+                                label = "select x variable", 
+                                choices = colnames(numeric)),
+                    selectInput(inputId = "select_y", 
+                                label = "select y variable", 
+                                choices = colnames(numeric))))),
       
       # Third tab content
       tabItem(tabName = "three")
@@ -75,8 +94,6 @@ ui <- dashboardPage(
   
   
 ) #End Dashboard Page
-
-
 
 server <- function(input, output) {
   
@@ -90,24 +107,31 @@ server <- function(input, output) {
     
   }) #End of Output$plot1 brackets 
   
-  ## our plot 
-  # read data 
-  d <- read.csv("~/HCI/week1/clean_data.csv") %>%
-    as_tibble() %>%
-    mutate(website = as_factor(website),
-           event = as_factor(event),
-           name = as_factor(name),
-           order_tickets_online = as_factor(order_tickets_online),
-           session = as_factor(session),
-           cinemaxx_1st = as_factor(cinemaxx_1st))
+  output$plot2 <- renderPlot({
+    ggplot(dataset, aes_string(x = input$select_x, 
+                        y = input$select_y)) +
+      geom_point(aes(color = website)) +
+      geom_smooth(aes(color = website), method = "lm", se = FALSE) +
+      scale_color_manual(values = wes_palette("Cavalcanti1")) +
+      theme_fivethirtyeight()
+  })
   
-  ## 1) not quite ready. 
+} # End server function 
+
+shinyApp(ui, server) #Run this to open your app 
+
+```
+
+actually makes sense
+
+```{r}
+
   output$plot2 <- renderPlot({ 
     d %>% group_by(name, website) %>%
     summarize(max_time = max(timestep),
               age = max(age)) %>%
     ungroup %>%
-    ggplot(aes(x = age, y = max_time, color = website)) +
+    ggplot(aes(x = input$select_x, y = input$select_y, color = website)) +
     geom_point() +
     geom_smooth(method = "lm", se = FALSE) +
     labs(y = "max time for completion", title = "great plot") +
@@ -116,9 +140,8 @@ server <- function(input, output) {
     
   })
 
-} # End server function 
 
-shinyApp(ui, server) #Run this to open your app 
+
 ```
 
 
@@ -205,7 +228,7 @@ This code, which creates the plot, goes inside the "server function" brackets:
 
 
 ```{r}
-p_load(wesanderson, RColorBrewer, ggthemes)
+
 
 # read data 
 d <- read.csv("~/HCI/week1/clean_data.csv") %>%
