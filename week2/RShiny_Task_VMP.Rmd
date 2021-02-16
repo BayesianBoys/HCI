@@ -1,0 +1,301 @@
+---
+title: "RShiny task"
+output: html_document
+---
+
+##### Load the packages we will use  ####
+
+If any of these are not installed, use install.packages(" package name ") to install it. 
+
+```{r}
+
+library(pacman)
+p_load(shiny, shinydashboard, tidyverse)
+
+```
+
+
+### The shiny dahsboard code ### 
+
+A dashboard contains a header, a sidebar, and a body. 
+
+You can paste code into this shell during the following tasks. 
+```{r}
+
+ui <- dashboardPage(
+  
+  dashboardHeader( 
+    
+    #This is the header 
+    
+    ), #End Dashboard header
+  
+  
+  dashboardSidebar(
+    
+    sidebarMenu(
+
+  menuItem("Tab one", tabName = "one", icon = icon("accessible-icon")),
+  menuItem("Tab two", tabName = "two", icon = icon("laptop-code")),
+  menuItem("Tab three", tabName = "three", icon = icon("grin-stars"))
+  
+  )
+    
+    # This is the sidebar 
+    
+    ), #End dashboard Sidebar
+  
+  
+  dashboardBody(
+    
+    tabItems(
+      # First tab content
+      tabItem(tabName = "one",
+              fluidRow( 
+                box(plotOutput("plot1", height = 250)), #Add plot,specify size.
+                box( #Create a box with interactive controls 
+                  title = "Controls", #Title of the box
+                  sliderInput("slider", "Number of observations:", 1, 100, 50)))),
+      #Input to the slider), 
+      #the tabName should refer to the tabname from the sidebar menu. 
+
+      # Second tab content
+      tabItem(tabName = "two", 
+      fluidRow( 
+                box(plotOutput("plot2", height = 250)) #Add plot,specify size.
+      )),
+      
+      # Third tab content
+      tabItem(tabName = "three")
+    ) #End of tab items 
+
+    # This is the body 
+    
+    ) # End dashboard Body 
+  
+  
+) #End Dashboard Page
+
+
+
+server <- function(input, output) {
+  
+  ## first plot 
+  set.seed(122)
+  histdata <- rnorm(500) # Simulate 500 data points, which are normally distributed
+
+  output$plot1 <- renderPlot({ 
+    data <- histdata[seq_len(input$slider)] #Record slider input
+    hist(data) #Create a histogram over the data 
+    
+  }) #End of Output$plot1 brackets 
+  
+  ## our plot 
+  # read data 
+  d <- read.csv("~/HCI/week1/clean_data.csv") %>%
+    as_tibble() %>%
+    mutate(website = as_factor(website),
+           event = as_factor(event),
+           name = as_factor(name),
+           order_tickets_online = as_factor(order_tickets_online),
+           session = as_factor(session),
+           cinemaxx_1st = as_factor(cinemaxx_1st))
+  
+  ## 1) not quite ready. 
+  output$plot2 <- renderPlot({ 
+    d %>% group_by(name, website) %>%
+    summarize(max_time = max(timestep),
+              age = max(age)) %>%
+    ungroup %>%
+    ggplot(aes(x = age, y = max_time, color = website)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE) +
+    labs(y = "max time for completion", title = "great plot") +
+    scale_color_manual(values = wes_palette("Cavalcanti1")) +
+    theme_fivethirtyeight() #Create a histogram over the data 
+    
+  })
+
+} # End server function 
+
+shinyApp(ui, server) #Run this to open your app 
+```
+
+
+# Tasks: 
+#### 1) Add tabs to your sidebar, by adding new code within the sidebar brackets in the chunck above. 
+
+
+This goes within the sidebar menu: 
+```{r,eval = FALSE}
+
+sidebarMenu(
+
+  menuItem("Tab one", tabName = "one", icon = icon("chalkboard-teacher")),
+  menuItem("Tab two", tabName = "two", icon = icon("laptop-code")),
+  menuItem("Tab three", tabName = "three", icon = icon("grin-stars"))
+  
+  )
+
+
+```
+
+  
+This goes within the body menu: 
+```{r, eval = FALSE}
+tabItems(
+      # First tab content
+      tabItem(tabName = "one"), #the tabName should refer to the tabname from the sidebar menu. 
+
+      # Second tab content
+      tabItem(tabName = "two"), 
+      
+      # Third tab content
+      tabItem(tabName = "three")
+    ) #End of tab items 
+
+
+```
+
+
+
+#### 2) Change the icon of the tabs. Icons can be found at https://fontawesome.com/icons?d=gallery 
+
+```{r}
+
+# done above. 
+
+```
+
+
+#### 3) Let's add some content to the dashboard body. 
+
+This code goes inside the dashboard body, inside the "tab one" brackets:  
+You need to add a comma after "one" inside the "tab one" bracket. 
+
+```{r, eval = FALSE}
+fluidRow( 
+      box(plotOutput("plot1", height = 250)), #Add the plot and specify the size of it
+      
+            box( #Create a box with interactive controls 
+        title = "Controls", #Title of the box
+        sliderInput("slider", "Number of observations:", 1, 100, 50))) #Input to the slider
+```
+
+
+This code, which creates the plot, goes inside the "server function" brackets:
+
+```{r, eval = FALSE}
+  set.seed(122)
+  histdata <- rnorm(500) # Simulate 500 data points, which are normally distributed
+
+  output$plot1 <- renderPlot({ 
+    data <- histdata[seq_len(input$slider)] #Record slider input
+    hist(data) #Create a histogram over the data 
+    
+  }) #End of Output$plot1 brackets 
+```
+
+
+#### 4) Create three plots, that convey information about the following questions: 
+
+1) How does age affect time to complete the task for each website?
+2) How does order_tickets_online affect the fixation/saccade ratio (Consider collapsing the "rarely" and the "never")
+3) How does the order effect (cinemax_1st) affect velocity on the different websites 
+
+
+```{r}
+p_load(wesanderson, RColorBrewer, ggthemes)
+
+# read data 
+d <- read.csv("~/HCI/week1/clean_data.csv") %>%
+  as_tibble() %>%
+  mutate(website = as_factor(website),
+         event = as_factor(event),
+         name = as_factor(name),
+         order_tickets_online = as_factor(order_tickets_online),
+         session = as_factor(session),
+         cinemaxx_1st = as_factor(cinemaxx_1st))
+
+## 1) not quite ready. 
+
+d %>% group_by(name, website) %>%
+  summarize(max_time = max(timestep),
+            age = max(age)) %>%
+  ungroup %>%
+  ggplot(aes(x = age, y = max_time, color = website)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(y = "max time for completion", title = "great plot") +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme_fivethirtyeight()
+
+# 2) How does order_tickets_online affect the fixation/saccade ratio 
+# (Consider  collapsing the "rarely" and the "never")
+
+p_load(forcats)
+d %>%
+  mutate(order_tickets_online = forcats::fct_recode(order_tickets_online,
+    "No" = "Rarely",
+    "No" = "Never",
+    "Yes" = "Often"
+  ))
+
+```
+
+
+The plots should be designed with the concepts from todays lecture in mind. How would you convey the information to someone who does not normally work with statistics?
+
+What kind of plots would be easy to understand, but still informative?   
+
+You are also welcome to add more plots. 
+
+You may want to use some of the subsets of data you find at the end of this script. (It's only there to help, no need to use it, if you don't need it)
+
+
+#### 6) Make a personal shiny dashboard for your plots 
+
+
+Go to the following link for a guide: http://rstudio.github.io/shinydashboard/appearance.html
+
+Add your three plots to a shiny dashboard, with one plot per tab. 
+
+
+ 
+
+
+
+
+
+### Data ###
+```{r, eval = FALSE}
+EyeTrackingDataraw <- read.csv("clean_data.csv") #Load data 
+```
+
+
+##### Here you create some data subsets, which may be usefull later. #####
+```{r, eval = FALSE}
+#Divide data into cinemax and nfbio data 
+cinemaxraw <- subset(EyeTrackingDataraw, EyeTrackingDataraw$website == "cinemaxx")
+nfbioraw <- subset(EyeTrackingDataraw, EyeTrackingDataraw$website == "nfbio")
+
+
+#Subset of data where we remove data wich is not numerical 
+Numbers <- unlist(lapply(EyeTrackingDataraw, is.numeric)) #Check which columns are numeric 
+
+cinemax <- cinemaxraw[ , Numbers] #Make a dataset with only numeric columns from cinemax data
+nfbio <- nfbioraw[ , Numbers] #Same for nfbio
+Both <- EyeTrackingDataraw[ , Numbers]#Both cinemax and nfbio, but only numeric columns 
+
+
+#Subset of data that only contains gaze and mouse placement (If you want to make a heatmap)
+MouseGazeCinemax <- cinemax[, c("x", "y", "mouse_x", "mouse_y")]
+MouseGazeNFBio <- nfbio[, c("x", "y", "mouse_x", "mouse_y")]
+MouseGazeBoth <- Both[, c("x", "y", "mouse_x", "mouse_y")]
+
+
+#Subset of data with only the max time for each participant 
+MaxtimeCinemax = cinemaxraw %>% group_by(name) %>% top_n(1, time) 
+MaxtimeNFBio = nfbioraw %>% group_by(name) %>% top_n(1, time) 
+
+```

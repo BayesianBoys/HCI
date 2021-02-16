@@ -168,6 +168,10 @@ velocity_log <- glmer(website ~ mouse_scaled + eye_scaled + (1|name),
 
 summary(velocity_log) # more cinemaxx for both mouse and eye velocity.
 
+# intercept on "natural" scale: 
+intercept = exp(0.056575)
+exp(0.056575 - 0.024684)
+
 ```
 
 conclusion: ??
@@ -188,6 +192,7 @@ mouse = ggplot(df, aes(mouse_x, mouse_y, color = website)) +
 
 pacman::p_load(cowplot)
 
-plot_grid(fix, mouse, nrow = 2)
+plot_grid(fix, mouse, nrow = 2) 
+
 ```
 
