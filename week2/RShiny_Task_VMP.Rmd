@@ -26,16 +26,76 @@ You can paste code into this shell during the following tasks.
 ```{r}
 
 ## reactive stuff. 
-dataset <- read.csv("~/HCI/week1/clean_data.csv") %>%
+
+# read data 
+d <- read.csv("~/HCI/week1/clean_data.csv") %>%
   as_tibble() %>%
   mutate(website = as_factor(website),
          event = as_factor(event),
          name = as_factor(name),
          order_tickets_online = as_factor(order_tickets_online),
          session = as_factor(session),
-         cinemaxx_1st = as_factor(cinemaxx_1st)) 
+         cinemaxx_1st = as_factor(cinemaxx_1st))
+
+## 1) plot 1.  
+p1 <- d %>% group_by(name, website) %>%
+  summarize(max_time = max(timestep),
+            age = max(age)) %>%
+  ungroup %>%
+  ggplot(aes(x = age, y = max_time, color = website)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(y = "max time for completion", title = "Age vs. completion time") +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme_minimal()
+
+# 2) How does order_tickets_online affect the fixation/saccade ratio 
+# (Consider  collapsing the "rarely" and the "never")
+
+## wrangle 1. 
+d_wrangle <- d %>%
+  mutate(tickets_online = as.numeric(forcats::fct_recode(order_tickets_online,
+    "0" = "Rarely",
+    "0" = "Never",
+    "1" = "Often")) - 1) %>%
+  mutate(event_num = as.numeric(forcats::fct_recode(event, 
+                               "0" = "fixation", 
+                               "1" = "saccade")) - 1) %>%
+  group_by(session, website, name) %>%
+  mutate(n = row_number()) %>%
+  glimpse()
+
+## wrangle 2. 
+d_sub <- d_wrangle %>%
+  group_by(website, name) %>%
+  summarize(ratio = sum(event_num)/max(n),
+            tickets_online = max(tickets_online)) %>%
+  glimpse()
+
+## plot 2.
+p2 <- d_sub %>%
+  ggplot(aes(x = as_factor(tickets_online),
+             y = ratio,
+             fill = website)) +
+  geom_boxplot() +
+  labs(x = "order tickets online",
+       title = "Expertise vs. fixation/saccade ratio") +
+  scale_fill_manual(values = wes_palette("Moonrise2")) +
+  theme_minimal()
+
+# 3) How does the order effect (cinemax_1st) affect velocity on the different websites
+p3 <- d %>%
+  filter(event == "saccade") %>%
+  ggplot(aes(x = cinemaxx_1st, 
+             y = velocity,
+             fill = website)) + 
+  geom_violin() +
+  scale_fill_manual(values = wes_palette("Royal1")) +
+  labs(x = "Order of websites",
+       y = "Velocity of saccades",
+       title = "Order vs. saccade velocity") +
+  theme_minimal()
   
-numeric <- dataset %>% select(where(is.numeric)) 
 
 ui <- dashboardPage(
   
@@ -50,9 +110,9 @@ ui <- dashboardPage(
     
     sidebarMenu(
 
-  menuItem("Tab one", tabName = "one", icon = icon("accessible-icon")),
-  menuItem("Tab two", tabName = "two", icon = icon("laptop-code")),
-  menuItem("Tab three", tabName = "three", icon = icon("grin-stars"))
+  menuItem("Histogram", tabName = "one", icon = icon("accessible-icon")),
+  menuItem("Tasks", tabName = "two", icon = icon("laptop-code")),
+  menuItem("Interactive", tabName = "three", icon = icon("grin-stars"))
   
   )
     
@@ -78,12 +138,11 @@ ui <- dashboardPage(
       tabItem(tabName = "two", 
       fluidRow( 
                 box(plotOutput("plot2", height = 250)), #Add plot,specify size.
-                box(selectInput(inputId = "select_x", 
-                                label = "select x variable", 
-                                choices = colnames(numeric)),
-                    selectInput(inputId = "select_y", 
-                                label = "select y variable", 
-                                choices = colnames(numeric))))),
+                box(selectInput(inputId = "select_plot", 
+                                label = "select a plot :)", 
+                                choices = c("Age/Time", 
+                                            "Expertise/Ratio",
+                                            "OrderEffect"))))),
       
       # Third tab content
       tabItem(tabName = "three")
@@ -108,13 +167,18 @@ server <- function(input, output) {
     
   }) #End of Output$plot1 brackets 
   
+  
   output$plot2 <- renderPlot({
-    ggplot(dataset, aes_string(x = input$select_x, 
-                        y = input$select_y)) +
-      geom_point(aes(color = website)) +
-      geom_smooth(aes(color = website), method = "lm", se = FALSE) +
-      scale_color_manual(values = wes_palette("Cavalcanti1")) +
-      theme_fivethirtyeight()
+    if(input$select_plot == "Age/Time"){
+      p1
+    }
+    else if(input$select_plot == "Expertise/Ratio"){
+      p2
+    }
+    else if(input$select_plot == "OrderEffect"){
+      p3
+    }
+    
   })
   
 } # End server function 
@@ -140,8 +204,6 @@ actually makes sense
     theme_fivethirtyeight() #Create a histogram over the data 
     
   })
-
-
 
 ```
 
