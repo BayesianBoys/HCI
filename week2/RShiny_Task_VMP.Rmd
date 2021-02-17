@@ -158,13 +158,18 @@ ui <- dashboardPage(
                   sliderInput("time_slider1", "Timestep", 1, max(d$timestep), 1, width = "100%", animate = animationOptions(interval = 1, loop = TRUE))))),
       
       tabItem(tabname = "four",
-      
               fluidRow(box(plotOutput("plot5")),
-                box(plotOutput("plot6"))),
+                       box(plotOutput("plot6"))),
       fluidRow( #Add plot,specify size.
                 box(width = 12, #Create a box with interactive controls 
                   title = "Time control", #Title of the box
-                  sliderInput("time_slider2", "Timestep", 1, max(d_fix$timestep), 1, width = "100%", animate = animationOptions(interval = 1, loop = TRUE)))))
+                  sliderInput("time_slider2", 
+                              "Timestep", 
+                              1, 
+                              max(d_fix$n), 
+                              1, 
+                              width = "100%", 
+                              animate = animationOptions(interval = 1, loop = TRUE)))))
       
       ) #End of tab items 
 
@@ -224,6 +229,7 @@ server <- function(input, output) {
       labs(title = "Mouse position") + 
       scale_color_manual(values = wes_palette("Cavalcanti1")) +
       theme_fivethirtyeight()
+  })
       
   output$plot5 <- renderPlot({
     d_fix %>%
@@ -249,7 +255,6 @@ server <- function(input, output) {
       labs(title = "Mouse position") + 
       scale_color_manual(values = wes_palette("Cavalcanti1")) +
       theme_fivethirtyeight()
-  })
   })
   
 } # End server function 
