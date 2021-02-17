@@ -145,8 +145,15 @@ ui <- dashboardPage(
                                             "OrderEffect"))))),
       
       # Third tab content
-      tabItem(tabName = "three")
-    ) #End of tab items 
+      tabItem(tabName = "three",
+      fluidRow( 
+                box(plotOutput("plot3")),
+                box(plotOutput("plot4"))),
+      fluidRow( #Add plot,specify size.
+                box(width = 12, #Create a box with interactive controls 
+                  title = "Time control", #Title of the box
+                  sliderInput("time_slider", "Timestep", 1, max(d$timestep), 1, width = "100%", animate = animationOptions(interval = 1, loop = TRUE)))))
+      ) #End of tab items 
 
     # This is the body 
     
@@ -179,6 +186,32 @@ server <- function(input, output) {
       p3
     }
     
+  })
+  
+  output$plot3 <- renderPlot({
+    d %>%
+      filter(timestep <= input$time_slider) %>%
+      ggplot(aes(x, y, color = website)) +
+      geom_point(alpha = 0.01) +
+      geom_density2d() + 
+      xlim(0, 1600)+
+      ylim(0, 900)+
+      labs(title = "Position of Eyes") + 
+      scale_color_manual(values = wes_palette("Cavalcanti1")) +
+      theme_fivethirtyeight()
+  })
+  output$plot4 <- renderPlot({
+    d %>% 
+      filter(timestep <= input$time_slider) %>%
+      ggplot(aes(mouse_x, mouse_y, color = website)) +
+      geom_point(alpha = 0.01) +
+      geom_density2d() +
+      xlim(0, 1600)+
+      ylim(0, 900)+
+      labs(title = "Mouse position") + 
+      scale_color_manual(values = wes_palette("Cavalcanti1")) +
+      theme_fivethirtyeight()
+      
   })
   
 } # End server function 
@@ -379,10 +412,20 @@ Go to the following link for a guide: http://rstudio.github.io/shinydashboard/ap
 
 Add your three plots to a shiny dashboard, with one plot per tab. 
 
+#### 2d densities 
 
- 
 
+```{r}
+fix = ggplot(df, aes(x, y, color = website)) +
+  geom_point(alpha = 0.01) +
+  geom_density2d() + 
+  labs(title = "Eyes")
 
+mouse = ggplot(df, aes(mouse_x, mouse_y, color = website)) +
+  geom_point(alpha = 0.01) +
+  geom_density2d() +
+  labs(title = "Mouse position")
+```
 
 
 
