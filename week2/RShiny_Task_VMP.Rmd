@@ -11,7 +11,8 @@ If any of these are not installed, use install.packages(" package name ") to ins
 
 library(pacman)
 p_load(shiny, shinydashboard, tidyverse,
-       wesanderson, RColorBrewer, ggthemes)
+       wesanderson, RColorBrewer, ggthemes,
+       forcats, extrafont)
 
 ```
 
@@ -20,9 +21,9 @@ p_load(shiny, shinydashboard, tidyverse,
 
 A dashboard contains a header, a sidebar, and a body. 
 
-You can paste code into this shell during the following tasks. 
-```{r}
+You can paste code into this shell during the following tasks.
 
+```{r}
 
 ## reactive stuff. 
 dataset <- read.csv("~/HCI/week1/clean_data.csv") %>%
@@ -226,9 +227,7 @@ This code, which creates the plot, goes inside the "server function" brackets:
 2) How does order_tickets_online affect the fixation/saccade ratio (Consider collapsing the "rarely" and the "never")
 3) How does the order effect (cinemax_1st) affect velocity on the different websites 
 
-
 ```{r}
-
 
 # read data 
 d <- read.csv("~/HCI/week1/clean_data.csv") %>%
@@ -241,7 +240,6 @@ d <- read.csv("~/HCI/week1/clean_data.csv") %>%
          cinemaxx_1st = as_factor(cinemaxx_1st))
 
 ## 1) not quite ready. 
-
 d %>% group_by(name, website) %>%
   summarize(max_time = max(timestep),
             age = max(age)) %>%
@@ -249,21 +247,57 @@ d %>% group_by(name, website) %>%
   ggplot(aes(x = age, y = max_time, color = website)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
-  labs(y = "max time for completion", title = "great plot") +
+  labs(y = "max time for completion", title = "Age vs. completion time") +
   scale_color_manual(values = wes_palette("Cavalcanti1")) +
-  theme_fivethirtyeight()
+  theme_minimal()
 
 # 2) How does order_tickets_online affect the fixation/saccade ratio 
 # (Consider  collapsing the "rarely" and the "never")
 
-p_load(forcats)
-d %>%
-  mutate(order_tickets_online = forcats::fct_recode(order_tickets_online,
-    "No" = "Rarely",
-    "No" = "Never",
-    "Yes" = "Often"
-  ))
+## wrangle 1. 
+d_wrangle <- d %>%
+  mutate(tickets_online = as.numeric(forcats::fct_recode(order_tickets_online,
+    "0" = "Rarely",
+    "0" = "Never",
+    "1" = "Often")) - 1) %>%
+  mutate(event_num = as.numeric(forcats::fct_recode(event, 
+                               "0" = "fixation", 
+                               "1" = "saccade")) - 1) %>%
+  group_by(session, website, name) %>%
+  mutate(n = row_number()) %>%
+  glimpse()
 
+## wrangle 2. 
+d_sub <- d_wrangle %>%
+  group_by(website, name) %>%
+  summarize(ratio = sum(event_num)/max(n),
+            tickets_online = max(tickets_online)) %>%
+  glimpse()
+
+## plot 
+d_sub %>%
+  ggplot(aes(x = as_factor(tickets_online),
+             y = ratio,
+             fill = website)) +
+  geom_boxplot() +
+  labs(x = "order tickets online",
+       title = "Expertise vs. fixation/saccade ratio") +
+  scale_fill_manual(values = wes_palette("Moonrise2")) +
+  theme_minimal()
+
+# 3) How does the order effect (cinemax_1st) affect velocity on the different websites
+d %>%
+  filter(event == "saccade") %>%
+  ggplot(aes(x = cinemaxx_1st, 
+             y = velocity,
+             fill = website)) + 
+  geom_violin() +
+  scale_fill_manual(values = wes_palette("Royal1")) +
+  labs(x = "Order of websites",
+       y = "Velocity of saccades",
+       title = "Order vs. saccade velocity") +
+  theme_minimal()
+  
 ```
 
 
