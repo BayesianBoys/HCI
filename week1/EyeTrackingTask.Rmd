@@ -70,7 +70,11 @@ df2 <- df1 %>%
            grouping = with(rle(event_num) %>% set_names(c("lengths2", "values")),
                         rep(seq_along(lengths2), lengths2))) %>%
   summarize(length = (max(n) - min(n) + 1),
-            type = max(event_num))
+            type = max(event_num),
+            x = mean(x),
+            y = mean(y),
+            mouse_x = mean(mouse_x),
+            mouse_y = mean(mouse_y))
 
 
 # last step 
@@ -83,7 +87,15 @@ df3 <- df2 %>%
 # more data wrangling needed. 
 fixation <- df3 %>%
   filter(!is.na(fixation)) %>%
-  select(!saccade)
+  select(!saccade) 
+  
+# first try. 
+fix_final <- fixation %>%
+  mutate(n = row_number()) %>%
+  select(!c(grouping, fixation))
+
+# write this.
+# write_csv(fix_final, "fix.csv")
 
 saccade <- df3 %>%
   filter(!is.na(saccade)) %>%
