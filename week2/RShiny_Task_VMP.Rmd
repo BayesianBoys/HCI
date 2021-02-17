@@ -27,6 +27,8 @@ You can paste code into this shell during the following tasks.
 
 ## reactive stuff. 
 
+d_fix <- read.csv("~/HCI/week1/fix.csv")
+
 # read data 
 d <- read.csv("~/HCI/week1/clean_data.csv") %>%
   as_tibble() %>%
@@ -112,7 +114,8 @@ ui <- dashboardPage(
 
   menuItem("Histogram", tabName = "one", icon = icon("accessible-icon")),
   menuItem("Tasks", tabName = "two", icon = icon("laptop-code")),
-  menuItem("Interactive", tabName = "three", icon = icon("grin-stars"))
+  menuItem("Interactive", tabName = "three", icon = icon("grin-stars")),
+  menuItem("Animation", tabName = "four", icon = icon("play"))
   
   )
     
@@ -152,7 +155,17 @@ ui <- dashboardPage(
       fluidRow( #Add plot,specify size.
                 box(width = 12, #Create a box with interactive controls 
                   title = "Time control", #Title of the box
-                  sliderInput("time_slider", "Timestep", 1, max(d$timestep), 1, width = "100%", animate = animationOptions(interval = 1, loop = TRUE)))))
+                  sliderInput("time_slider1", "Timestep", 1, max(d$timestep), 1, width = "100%", animate = animationOptions(interval = 1, loop = TRUE))))),
+      
+      tabItem(tabname = "four",
+      
+              fluidRow(box(plotOutput("plot5")),
+                box(plotOutput("plot6"))),
+      fluidRow( #Add plot,specify size.
+                box(width = 12, #Create a box with interactive controls 
+                  title = "Time control", #Title of the box
+                  sliderInput("time_slider2", "Timestep", 1, max(d_fix$timestep), 1, width = "100%", animate = animationOptions(interval = 1, loop = TRUE)))))
+      
       ) #End of tab items 
 
     # This is the body 
@@ -190,7 +203,7 @@ server <- function(input, output) {
   
   output$plot3 <- renderPlot({
     d %>%
-      filter(timestep <= input$time_slider) %>%
+      filter(timestep <= input$time_slider1) %>%
       ggplot(aes(x, y, color = website)) +
       geom_point(alpha = 0.01) +
       geom_density2d() + 
@@ -202,7 +215,7 @@ server <- function(input, output) {
   })
   output$plot4 <- renderPlot({
     d %>% 
-      filter(timestep <= input$time_slider) %>%
+      filter(timestep <= input$time_slider1) %>%
       ggplot(aes(mouse_x, mouse_y, color = website)) +
       geom_point(alpha = 0.01) +
       geom_density2d() +
@@ -212,6 +225,31 @@ server <- function(input, output) {
       scale_color_manual(values = wes_palette("Cavalcanti1")) +
       theme_fivethirtyeight()
       
+  output$plot5 <- renderPlot({
+    d_fix %>%
+      filter(n <= input$time_slider2) %>%
+      ggplot(aes(x, y, color = website)) +
+      geom_point(alpha = 0.01) +
+      geom_density2d() + 
+      xlim(0, 1600)+
+      ylim(0, 900)+
+      labs(title = "Position of Eyes") + 
+      scale_color_manual(values = wes_palette("Cavalcanti1")) +
+      theme_fivethirtyeight()
+  })
+  
+  output$plot6 <- renderPlot({
+    d_fix %>%
+      filter(n <= input$time_slider2) %>%
+      ggplot(aes(mouse_x, mouse_y, color = website)) +
+      geom_point(alpha = 0.01) +
+      geom_density2d() +
+      xlim(0, 1600)+
+      ylim(0, 900)+
+      labs(title = "Mouse position") + 
+      scale_color_manual(values = wes_palette("Cavalcanti1")) +
+      theme_fivethirtyeight()
+  })
   })
   
 } # End server function 
