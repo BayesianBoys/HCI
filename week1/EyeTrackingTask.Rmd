@@ -91,11 +91,12 @@ fixation <- df3 %>%
   
 # first try. 
 fix_final <- fixation %>%
+  group_by(website, name) %>%
   mutate(n = row_number()) %>%
-  select(!c(grouping, fixation))
+  select(!c(grouping))
 
 # write this.
-# write_csv(fix_final, "fix.csv")
+write_csv(fix_final, "fix.csv")
 
 saccade <- df3 %>%
   filter(!is.na(saccade)) %>%
