@@ -34,6 +34,10 @@ for i in countries:
 
 df = pd.concat(list_of_dfs)
 
+new_names = {'total_vaccinations':"Total Vaccinations", 'people_vaccinated': "People Vaccinated", 'people_fully_vaccinated': "People Fully Vaccinated", 'daily_vaccinations_raw': "Raw Daily Vaccinations", 'daily_vaccinations': "Daily Vaccinations", 'total_vaccinations_per_hundred':"Total Vaccinations Pr. Hundred", 'people_vaccinated_per_hundred':"People Vaccinated Pr. Hundred", 'people_fully_vaccinated_per_hundred': "People Fully Vaccinated Pr. Hundred", 'daily_vaccinations_per_million': "Daily Vaccinations Pr. Million"}
+
+df = df.rename(columns = new_names)
+
 if st.checkbox('Show the dataframe'):
     df
 
@@ -51,7 +55,7 @@ options = st.sidebar.multiselect(
     countries, None
 )
 
-interesting_columns = ["total_vaccinations", "people_vaccinated", "people_fully_vaccinated", "daily_vaccinations_raw", "daily_vaccinations", "total_vaccinations_per_hundred", "people_vaccinated_per_hundred", "people_fully_vaccinated_per_hundred", "daily_vaccinations_per_million"]
+interesting_columns = list(new_names.values())
 
 y_col = st.sidebar.selectbox('What variable would you like to compare between countries?', interesting_columns)
 
@@ -71,18 +75,16 @@ expander.write(f"The third variable is used to select whether to interpolate val
 if options:
     dictionary_comp = {option: df[df["country"] == option][y_col].values for option in options}
     dictionary_comp["date"] = list(date_ranging)
-    #dictionary_comp = 
-    #df_subset = [df[df["country"] == i]["daily_vaccinations_per_million"] for i in options]
     df_subset = pd.DataFrame(dictionary_comp)
 
     df_subset = df_subset.rename(columns={'date':'index'}).set_index('index')
-    #boolean_rows = df["country"].isin(options)
-    #df_subset = df[boolean_rows]
-    #df_subset = df_subset.interpolate()
+
 
     if interpol == "Yes":
         df_subset = df_subset.interpolate(method = "time")
     
+    ## CURRENTLY NOT SHOWING y-label. This can be fixed here: https://github.com/streamlit/streamlit/issues/1129
+
     st.line_chart(df_subset)
     expander = st.beta_expander("Area Chart (click for information)")
     expander.write(f"The plot belows shows the area under the curve for the variable {y_col}. When multiple countries are chosen, the countries will be stacked on top of each other. As such, this plot is best used to get better intuitions about how countries differ in terms of volume.")
@@ -90,53 +92,3 @@ if options:
     st.area_chart(df_subset)
     #st.map()
 
-#df_subset = pd.DataFrame(df_pivot["Albania"].values, index = df_pivot.index)
-
-#st.line_chart(df_pivot.unstack())
-
-# map_data = pd.DataFrame(
-#     np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4],
-#     columns=['lat', 'lon'])
-
-# st.map(map_data)
-
-# if st.checkbox('Show dataframe'):
-#     chart_data = pd.DataFrame(
-#        np.random.randn(20, 3),
-#        columns=['a', 'b', 'c'])
-
-#     st.line_chart(chart_data)
-
-# # option = st.selectbox(
-# #     'Which number do you like best?',
-# #      df['first column'])
-
-# # 'You selected: ', option
-
-# option = st.sidebar.selectbox(
-#     'Which number do you like best?',
-#      df['first column'])
-
-# 'You selected:', option
-
-# left_column, right_column = st.beta_columns(2)
-# pressed = left_column.button('Press me?')
-# if pressed:
-#     right_column.write("Woohoo!")
-
-# expander = st.beta_expander("FAQ")
-# expander.write("Here you could put in some really, really long explanations...")
-
-# 'Starting a long computation...'
-
-# # Add a placeholder
-# latest_iteration = st.empty()
-# bar = st.progress(0)
-
-# for i in range(100):
-#   # Update the progress bar with each iteration.
-#   latest_iteration.text(f'Iteration {i+1}')
-#   bar.progress(i + 1)
-#   time.sleep(0.1)
-
-# '...and now we\'re done!'
