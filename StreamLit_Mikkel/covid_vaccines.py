@@ -115,7 +115,6 @@ if options:
     expander.write(f"The plot belows shows the area under the curve for the variable {y_col}. When multiple countries are chosen, the countries will be stacked on top of each other. As such, this plot is best used to get better intuitions about how countries differ in terms of volume.")
 
     st.area_chart(df_subset)
-    #st.map()
 
     ### Expander for countries
 
