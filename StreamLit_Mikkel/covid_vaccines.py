@@ -148,3 +148,7 @@ if options:
     expander.area_chart(int_df)
     
 
+for i in range(1000):
+    inputting = input("hey")
+    if inputting == "break":
+        break
